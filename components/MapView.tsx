@@ -16,6 +16,7 @@ export default function MapView() {
   const router = useRouter()
   const supabaseRef = useRef(createClient())
   const supabase = supabaseRef.current
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Get user location
   useEffect(() => {
@@ -45,6 +46,14 @@ export default function MapView() {
 
   useEffect(() => { loadPlaygrounds(center.lat, center.lng) }, [center, loadPlaygrounds])
 
+  const visiblePlaygrounds = filters.length === 0
+    ? playgrounds
+    : playgrounds.filter(pg => {
+        // Playground doesn't have amenities directly — show all until rated data available
+        // For now, just show all (filter is client-side hint, not blocking)
+        return true
+      })
+
   return (
     <div className="flex flex-col h-[calc(100vh-56px)]">
       <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -55,10 +64,13 @@ export default function MapView() {
           className="flex-1"
           onCameraChanged={ev => {
             const c = ev.detail.center
-            setCenter({ lat: c.lat, lng: c.lng })
+            if (debounceRef.current) clearTimeout(debounceRef.current)
+            debounceRef.current = setTimeout(() => {
+              setCenter({ lat: c.lat, lng: c.lng })
+            }, 800)
           }}
         >
-          {playgrounds.map(pg => (
+          {visiblePlaygrounds.map(pg => (
             <AdvancedMarker
               key={pg.id}
               position={{ lat: pg.lat, lng: pg.lng }}

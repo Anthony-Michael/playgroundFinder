@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchPlaygroundsNearby } from '@/lib/google-places'
 
 export async function POST(request: Request) {
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ seeded: 0 })
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error, count } = await supabase
     .from('playgrounds')
     .upsert(playgrounds as any, { onConflict: 'google_place_id', ignoreDuplicates: true })
