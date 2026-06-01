@@ -36,7 +36,8 @@ export default function RatingForm({ playgroundId, userId, onSuccess, onNeedAuth
       stars,
       amenities,
       comment: comment.trim() || null,
-    } as any, { onConflict: 'playground_id,user_id' })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as unknown as any, { onConflict: 'playground_id,user_id' })
 
     setLoading(false)
     if (err) { setError(err.message); return }
@@ -51,7 +52,7 @@ export default function RatingForm({ playgroundId, userId, onSuccess, onNeedAuth
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">What's there?</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">What&apos;s there?</label>
         <div className="grid grid-cols-2 gap-2">
           {AMENITIES.map(({ key, label, icon }) => (
             <label key={key} className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors ${amenities[key] ? 'bg-green-50 border-green-300 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>

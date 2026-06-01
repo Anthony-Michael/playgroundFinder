@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Playground } from '@/lib/supabase/types'
 import PlaygroundCard from '@/components/PlaygroundCard'
@@ -9,8 +9,7 @@ export default function ListPage() {
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([])
   const [search, setSearch] = useState('')
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
-  const supabaseRef = useRef(createClient())
-  const supabase = supabaseRef.current
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(

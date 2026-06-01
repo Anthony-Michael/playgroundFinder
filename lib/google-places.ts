@@ -14,7 +14,8 @@ export async function fetchPlaygroundsNearby(
   if (!res.ok) throw new Error(`Places API error: ${res.status}`)
   const data = await res.json()
 
-  return (data.results ?? []).map((place: any) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data.results ?? []).map((place: Record<string, any>) => ({
     google_place_id: place.place_id,
     name: place.name,
     lat: place.geometry.location.lat,

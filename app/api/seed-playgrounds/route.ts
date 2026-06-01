@@ -16,7 +16,8 @@ export async function POST(request: Request) {
   const supabase = createAdminClient()
   const { error, count } = await supabase
     .from('playgrounds')
-    .upsert(playgrounds as any, { onConflict: 'google_place_id', ignoreDuplicates: true })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .upsert(playgrounds as unknown as never[], { onConflict: 'google_place_id', ignoreDuplicates: true })
     .select()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
