@@ -12,7 +12,7 @@ create table public.playgrounds (
   lat float not null,
   lng float not null,
   google_place_id text unique not null,
-  avg_rating float default 0,
+  avg_rating numeric(3,2) default 0,
   rating_count int default 0,
   city text,
   country text check (country in ('CA', 'US')),
@@ -54,7 +54,7 @@ begin
     avg_rating = (select coalesce(avg(stars), 0) from public.ratings where playground_id = coalesce(new.playground_id, old.playground_id)),
     rating_count = (select count(*) from public.ratings where playground_id = coalesce(new.playground_id, old.playground_id))
   where id = coalesce(new.playground_id, old.playground_id);
-  return new;
+  return coalesce(new, old);
 end;
 $$ language plpgsql security definer;
 
