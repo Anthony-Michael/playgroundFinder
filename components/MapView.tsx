@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -14,7 +14,8 @@ export default function MapView() {
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([])
   const [filters, setFilters] = useState<AmenityKey[]>([])
   const router = useRouter()
-  const supabase = createClient()
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
 
   // Get user location
   useEffect(() => {
