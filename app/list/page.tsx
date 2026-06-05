@@ -37,17 +37,24 @@ export default function ListPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="sticky top-14 bg-white border-b border-gray-200 px-4 py-3 z-30">
-        <input
-          type="search"
-          placeholder="🔍 Search playgrounds..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
+      <div className="sticky top-14 bg-white border-b border-gray-200 z-30">
+        <div className="px-4 pt-4 pb-3">
+          <h1 className="text-lg font-bold text-gray-900 mb-3">Nearby Playgrounds</h1>
+          <input
+            type="search"
+            placeholder="Search playgrounds..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full border border-gray-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+          />
+        </div>
       </div>
       {sorted.length === 0 ? (
-        <p className="text-center text-gray-400 py-12">No playgrounds found</p>
+        <div className="flex flex-col items-center py-16 text-center px-4">
+          <div className="text-5xl mb-3">🔍</div>
+          <p className="font-medium text-gray-700">No playgrounds found</p>
+          <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
+        </div>
       ) : (
         sorted.map(pg => (
           <PlaygroundCard
