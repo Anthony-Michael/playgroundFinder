@@ -34,8 +34,8 @@ export default function AuthModal({ isOpen, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-xl" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl border border-gray-100" onClick={e => e.stopPropagation()}>
         <div className="text-center mb-6">
           <div className="text-3xl mb-2">🛝</div>
           <h2 className="text-xl font-bold text-gray-900">Sign in to rate</h2>
