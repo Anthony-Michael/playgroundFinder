@@ -26,15 +26,26 @@ export default function ListPage() {
   }, [])
 
   useEffect(() => {
+    if (!locationReady) return
     async function load() {
-      let query = supabase.from('playgrounds').select('*').order('avg_rating', { ascending: false })
+      let query = supabase.from('playgrounds').select('*')
+      if (userLocation) {
+        // Only fetch playgrounds within ~25km of the user; without a location
+        // (denied), fall back to the global top-rated list
+        const delta = 0.25
+        query = query
+          .gte('lat', userLocation.lat - delta).lte('lat', userLocation.lat + delta)
+          .gte('lng', userLocation.lng - delta).lte('lng', userLocation.lng + delta)
+      } else {
+        query = query.order('avg_rating', { ascending: false })
+      }
       if (search.trim()) query = query.ilike('name', `%${search.trim()}%`)
       const { data } = await query.limit(50)
       setPlaygrounds(data ?? [])
       setLoaded(true)
     }
     load()
-  }, [search, supabase])
+  }, [search, supabase, locationReady, userLocation])
 
   const sorted = userLocation
     ? [...playgrounds].sort((a, b) =>
