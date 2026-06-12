@@ -9,12 +9,19 @@ export default function ListPage() {
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([])
   const [search, setSearch] = useState('')
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  // Wait for geolocation (granted or denied) and the first load before showing
+  // anything, so the list doesn't flash far-away playgrounds and re-sort
+  const [locationReady, setLocationReady] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      pos => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {}
+      pos => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setLocationReady(true)
+      },
+      () => setLocationReady(true)
     )
   }, [])
 
@@ -24,6 +31,7 @@ export default function ListPage() {
       if (search.trim()) query = query.ilike('name', `%${search.trim()}%`)
       const { data } = await query.limit(50)
       setPlaygrounds(data ?? [])
+      setLoaded(true)
     }
     load()
   }, [search, supabase])
@@ -54,7 +62,13 @@ export default function ListPage() {
           />
         </div>
       </div>
-      {sorted.length === 0 ? (
+      {!locationReady || !loaded ? (
+        <div className="mx-4 mt-10 text-center">
+          <p className="font-data text-xs font-semibold uppercase tracking-widest text-moss">
+            Finding playgrounds near you…
+          </p>
+        </div>
+      ) : sorted.length === 0 ? (
         <div className="mx-4 mt-6 border border-dashed border-line rounded-xl py-14 text-center px-4">
           <p className="font-semibold text-ink">No playgrounds found</p>
           <p className="text-sm text-moss mt-1">Try a different search term.</p>
