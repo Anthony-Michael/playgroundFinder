@@ -14,10 +14,13 @@ export default function StarPicker({ value, onChange }: Props) {
         <button
           key={star}
           type="button"
+          aria-label={`${star} star${star > 1 ? 's' : ''}`}
           onClick={() => onChange(star)}
           onMouseEnter={() => setHover(star)}
           onMouseLeave={() => setHover(0)}
-          className={`text-3xl transition-colors ${star <= (hover || value) ? 'text-yellow-400' : 'text-gray-300'}`}
+          className={`text-4xl leading-none p-0.5 transition-colors focus-visible:outline-2 focus-visible:outline-park rounded ${
+            star <= (hover || value) ? 'text-slide' : 'text-sand-deep'
+          }`}
         >
           ★
         </button>

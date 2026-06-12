@@ -40,49 +40,46 @@ export default async function PlaygroundDetailPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser()
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <Link href="/list" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 mb-5 transition-colors">
+    <div className="max-w-2xl mx-auto px-4 py-5">
+      <Link
+        href="/list"
+        className="inline-flex items-center gap-1 font-data text-[11px] font-semibold uppercase tracking-widest text-moss hover:text-ink mb-4 transition-colors"
+      >
         ← Back to list
       </Link>
 
-      <div className="flex items-start gap-3 mb-5">
-        <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center text-2xl flex-shrink-0">
-          🛝
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">{playground.name}</h1>
-          {playground.city && (
-            <p className="text-gray-500 text-sm mt-0.5">
-              {playground.city}{playground.country ? `, ${playground.country}` : ''}
-            </p>
-          )}
-          <div className="mt-2">
-            <StarRating rating={Number(playground.avg_rating)} count={playground.rating_count} size="lg" />
-          </div>
+      {/* Signboard hero — the park entrance sign */}
+      <div className="bg-park text-white rounded-xl border-b-4 border-park-deep px-5 py-6 mb-6">
+        {playground.city && (
+          <p className="font-data text-[10px] font-semibold uppercase tracking-[0.14em] text-slide mb-1.5">
+            {playground.city}{playground.country ? ` · ${playground.country}` : ''}
+          </p>
+        )}
+        <h1 className="font-display font-extrabold text-[26px] leading-tight tracking-tight">
+          {playground.name}
+        </h1>
+        <div className="mt-3">
+          <StarRating rating={Number(playground.avg_rating)} count={playground.rating_count} size="lg" tone="dark" />
         </div>
       </div>
 
-      <div className="h-px bg-gray-100 mb-6" />
-
-      <section className="mb-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-3">Amenities</h2>
+      <section className="mb-7">
+        <h2 className="font-display font-bold text-base text-ink mb-3">Amenities</h2>
         <AmenityChecklist amenities={amenityTotals} ratingCount={playground.rating_count} />
       </section>
 
-      <div className="h-px bg-gray-100 mb-6" />
-
-      <section className="mb-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-3">Rate This Playground</h2>
+      <section className="mb-7">
+        <h2 className="font-display font-bold text-base text-ink mb-3">Rate this playground</h2>
         <RatingFormWrapper playgroundId={playground.id} userId={user?.id ?? null} />
       </section>
 
-      <div className="h-px bg-gray-100 mb-6" />
-
       <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-3">
+        <h2 className="font-display font-bold text-base text-ink mb-3">
           Reviews
           {allRatings.length > 0 && (
-            <span className="ml-2 text-sm font-normal text-gray-400">({allRatings.length})</span>
+            <span className="ml-2 font-data text-[11px] font-semibold uppercase tracking-wider text-moss">
+              {allRatings.length}
+            </span>
           )}
         </h2>
         <ReviewList ratings={allRatings} />

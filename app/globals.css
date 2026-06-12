@@ -1,17 +1,33 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  PlayFinder — "Park Wayfinding" design system
+  Colors come from the playground's real world:
+  powder-coated signage green, sandbox sand, slide yellow.
+*/
+@theme {
+  --color-ink: #22301f;        /* green-cast near-black text */
+  --color-park: #1e5a3c;       /* primary — park signage green */
+  --color-park-deep: #143d28;  /* pressed / borders on green */
+  --color-sand: #f8f4ea;       /* page background */
+  --color-sand-deep: #efe7d6;  /* tints, disabled fills */
+  --color-slide: #f2b23e;      /* stars and highlights only */
+  --color-splash: #2c7fa8;     /* secondary, used sparingly */
+  --color-clay: #c75038;       /* errors only */
+  --color-line: #dcd5c4;       /* hairline borders */
+  --color-moss: #6e7a66;       /* muted text */
 }
 
+/* Fonts are loaded via next/font in app/layout.tsx */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --font-display: var(--font-bricolage);
+  --font-body: var(--font-hanken);
+  --font-data: var(--font-spline-mono);
 }
 
-/* PlayFinder is a light-mode app — always use light background regardless of system preference */
+/* PlayFinder is a light-mode app — always light regardless of system preference */
 body {
-  background: #ffffff;
-  color: #171717;
+  background: var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-body);
 }

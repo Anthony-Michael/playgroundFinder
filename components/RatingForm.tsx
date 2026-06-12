@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { AMENITIES, DEFAULT_AMENITIES } from '@/lib/amenities'
 import type { Amenities } from '@/lib/supabase/types'
 import StarPicker from './StarPicker'
+import AmenityIcon from './AmenityIcon'
 
 type Props = {
   playgroundId: string
@@ -27,7 +28,7 @@ export default function RatingForm({ playgroundId, userId, onSuccess, onNeedAuth
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!userId) { onNeedAuth(); return }
-    if (stars === 0) { setError('Please select a star rating'); return }
+    if (stars === 0) { setError('Select a star rating first'); return }
     setLoading(true)
     setError(null)
     const { error: err } = await supabase.from('ratings').upsert({
@@ -45,34 +46,44 @@ export default function RatingForm({ playgroundId, userId, onSuccess, onNeedAuth
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5 bg-white border border-line rounded-xl p-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Your rating</label>
+        <label className="block text-sm font-semibold text-ink mb-2">Your rating</label>
         <StarPicker value={stars} onChange={setStars} />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">What&apos;s there?</label>
-        <div className="grid grid-cols-2 gap-2">
-          {AMENITIES.map(({ key, label, icon }) => (
-            <label key={key} className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors ${amenities[key] ? 'bg-green-50 border-green-300 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
-              <input
-                type="checkbox"
-                checked={amenities[key]}
-                onChange={() => toggleAmenity(key)}
-                className="sr-only"
-              />
-              <span>{icon}</span>
-              <span className="text-sm">{label}</span>
-              {amenities[key] && <span className="ml-auto">✓</span>}
-            </label>
-          ))}
+        <label className="block text-sm font-semibold text-ink mb-2">What&apos;s there?</label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {AMENITIES.map(({ key, label }) => {
+            const checked = amenities[key]
+            return (
+              <label
+                key={key}
+                className={`flex items-center gap-2.5 p-2.5 rounded-[10px] border cursor-pointer text-sm transition-colors ${
+                  checked
+                    ? 'bg-park border-park-deep text-white font-semibold'
+                    : 'bg-sand border-line text-ink hover:border-park'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleAmenity(key)}
+                  className="sr-only"
+                />
+                <AmenityIcon name={key} className={`w-4 h-4 flex-shrink-0 ${checked ? 'text-slide' : 'text-park'}`} />
+                <span className="truncate">{label}</span>
+                {checked && <span className="ml-auto text-slide">✓</span>}
+              </label>
+            )
+          })}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Comment <span className="text-gray-400 font-normal">(optional)</span>
+        <label className="block text-sm font-semibold text-ink mb-2">
+          Comment <span className="text-moss font-normal">(optional)</span>
         </label>
         <textarea
           value={comment}
@@ -80,19 +91,19 @@ export default function RatingForm({ playgroundId, userId, onSuccess, onNeedAuth
           maxLength={280}
           rows={3}
           placeholder="Any tips for other parents?"
-          className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+          className="w-full border border-line bg-sand rounded-[10px] px-3.5 py-3 text-sm focus:outline-2 focus:outline-park resize-none placeholder:text-moss"
         />
-        <p className="text-xs text-gray-400 text-right">{comment.length}/280</p>
+        <p className="font-data text-[10px] font-semibold text-moss text-right mt-1">{comment.length}/280</p>
       </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-clay text-sm font-medium">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-green-500 hover:bg-green-600 text-white rounded-xl py-4 font-semibold disabled:opacity-50 text-base"
+        className="w-full bg-park hover:bg-park-deep text-white rounded-[10px] py-3.5 font-bold disabled:opacity-50 text-base transition-colors"
       >
-        {loading ? 'Submitting...' : 'Submit Rating'}
+        {loading ? 'Submitting…' : 'Submit rating'}
       </button>
     </form>
   )

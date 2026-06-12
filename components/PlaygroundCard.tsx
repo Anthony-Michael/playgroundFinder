@@ -1,6 +1,9 @@
+'use client'
 import Link from 'next/link'
+import { useState } from 'react'
 import type { Playground } from '@/lib/supabase/types'
 import StarRating from './StarRating'
+import { IconBadge } from './AmenityIcon'
 import { formatDistance } from '@/lib/distance'
 
 type Props = {
@@ -10,37 +13,51 @@ type Props = {
 
 export default function PlaygroundCard({ playground, distanceKm }: Props) {
   const hasRatings = playground.rating_count > 0
+  const [imgError, setImgError] = useState(false)
+
+  const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=112x112&location=${playground.lat},${playground.lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&radius=100&return_error_code=true`
 
   return (
     <Link
       href={`/playground/${playground.id}`}
-      className="flex items-center gap-4 px-4 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors group"
+      className="flex items-center gap-3.5 bg-white border border-line rounded-xl p-3.5 hover:border-park focus-visible:outline-2 focus-visible:outline-park transition-colors"
     >
-      <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-green-100 flex items-center justify-center text-xl">
-        🛝
-      </div>
+      {!imgError ? (
+        <span className="w-14 h-14 rounded-[10px] overflow-hidden flex-shrink-0 bg-sand-deep border border-line">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={streetViewUrl}
+            alt={playground.name}
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        </span>
+      ) : (
+        <IconBadge name="playground" />
+      )}
 
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-gray-900 truncate group-hover:text-green-700 transition-colors">
+        <h3 className="font-display font-bold text-ink truncate tracking-tight">
           {playground.name}
         </h3>
         <div className="flex items-center gap-2 mt-0.5">
           {hasRatings ? (
             <StarRating rating={Number(playground.avg_rating)} count={playground.rating_count} size="sm" />
           ) : (
-            <span className="text-xs text-gray-400">No ratings yet</span>
+            <span className="text-xs text-moss">No ratings yet</span>
           )}
           {playground.city && (
-            <>
-              <span className="text-gray-300 text-xs">·</span>
-              <span className="text-xs text-gray-400 truncate">{playground.city}</span>
-            </>
+            <span className="font-data text-[11px] font-semibold uppercase tracking-wider text-moss truncate">
+              · {playground.city}
+            </span>
           )}
         </div>
       </div>
 
       {distanceKm !== undefined && (
-        <span className="text-sm text-gray-400 flex-shrink-0 font-medium">{formatDistance(distanceKm)}</span>
+        <span className="font-data text-[11px] font-semibold uppercase tracking-wider text-moss flex-shrink-0">
+          {formatDistance(distanceKm)}
+        </span>
       )}
     </Link>
   )

@@ -3,9 +3,10 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import type { Playground } from '@/lib/supabase/types'
+import type { Amenities, Playground } from '@/lib/supabase/types'
 import type { AmenityKey } from '@/lib/amenities'
 import AmenityFilterChips from './AmenityFilterChips'
+import AmenityIcon from './AmenityIcon'
 
 const DEFAULT_CENTER = { lat: 43.6532, lng: -79.3832 } // Toronto
 
@@ -13,6 +14,8 @@ export default function MapView() {
   const [center, setCenter] = useState(DEFAULT_CENTER)
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([])
   const [filters, setFilters] = useState<AmenityKey[]>([])
+  // playground id → amenities confirmed by ≥50% of raters (same rule as the detail page)
+  const [confirmedAmenities, setConfirmedAmenities] = useState<Record<string, Set<AmenityKey>>>({})
   const router = useRouter()
   const supabaseRef = useRef(createClient())
   const supabase = supabaseRef.current
@@ -41,7 +44,36 @@ export default function MapView() {
       .select('*')
       .gte('lat', lat - delta).lte('lat', lat + delta)
       .gte('lng', lng - delta).lte('lng', lng + delta)
-    setPlaygrounds(data ?? [])
+    const pgs = (data ?? []) as Playground[]
+    setPlaygrounds(pgs)
+
+    // Aggregate rated amenities for the loaded playgrounds
+    const ratedIds = pgs.filter(pg => pg.rating_count > 0).map(pg => pg.id)
+    if (ratedIds.length === 0) {
+      setConfirmedAmenities({})
+      return
+    }
+    const { data: ratings } = await supabase
+      .from('ratings')
+      .select('playground_id, amenities')
+      .in('playground_id', ratedIds)
+    const ratingRows = (ratings ?? []) as { playground_id: string; amenities: Amenities }[]
+    const tally: Record<string, { total: number; counts: Partial<Record<AmenityKey, number>> }> = {}
+    for (const r of ratingRows) {
+      const t = (tally[r.playground_id] ??= { total: 0, counts: {} })
+      t.total++
+      const a = r.amenities
+      for (const key of Object.keys(a) as AmenityKey[]) {
+        if (a[key]) t.counts[key] = (t.counts[key] ?? 0) + 1
+      }
+    }
+    const confirmed: Record<string, Set<AmenityKey>> = {}
+    for (const [id, t] of Object.entries(tally)) {
+      confirmed[id] = new Set(
+        (Object.keys(t.counts) as AmenityKey[]).filter(key => (t.counts[key] ?? 0) / t.total >= 0.5)
+      )
+    }
+    setConfirmedAmenities(confirmed)
   }, [supabase])
 
   useEffect(() => { loadPlaygrounds(center.lat, center.lng) }, [center, loadPlaygrounds])
@@ -49,9 +81,8 @@ export default function MapView() {
   const visiblePlaygrounds = filters.length === 0
     ? playgrounds
     : playgrounds.filter(pg => {
-        // Playground doesn't have amenities directly — show all until rated data available
-        // For now, just show all (filter is client-side hint, not blocking)
-        return true
+        const confirmed = confirmedAmenities[pg.id]
+        return confirmed !== undefined && filters.every(f => confirmed.has(f))
       })
 
   return (
@@ -76,12 +107,23 @@ export default function MapView() {
               position={{ lat: pg.lat, lng: pg.lng }}
               onClick={() => router.push(`/playground/${pg.id}`)}
               title={pg.name}
-            />
+            >
+              <div className="w-8 h-8 rounded-[10px] bg-park border-2 border-white shadow-md flex items-center justify-center text-white">
+                <AmenityIcon name="playground" className="w-4 h-4" />
+              </div>
+            </AdvancedMarker>
           ))}
         </Map>
       </APIProvider>
-      <div className="py-3 bg-white border-t border-gray-200 shadow-lg">
+      <div className="py-3 bg-sand border-t border-line">
         <AmenityFilterChips active={filters} onChange={setFilters} />
+        {filters.length > 0 && (
+          <p className="font-data text-[10px] font-semibold uppercase tracking-widest text-moss px-4 pt-2">
+            {visiblePlaygrounds.length === 0
+              ? 'No rated playgrounds match — clear a filter or rate one to add it'
+              : `${visiblePlaygrounds.length} of ${playgrounds.length} match`}
+          </p>
+        )}
       </div>
     </div>
   )

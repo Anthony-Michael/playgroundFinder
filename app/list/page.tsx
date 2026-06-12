@@ -37,32 +37,38 @@ export default function ListPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="sticky top-14 bg-white border-b border-gray-200 z-30">
-        <div className="px-4 pt-4 pb-3">
-          <h1 className="text-lg font-bold text-gray-900 mb-3">Nearby Playgrounds</h1>
+      <div className="sticky top-14 bg-sand border-b border-line z-30">
+        <div className="px-4 pt-5 pb-4">
+          <h1 className="font-display font-extrabold text-2xl text-ink tracking-tight">Nearby playgrounds</h1>
+          {sorted.length > 0 && (
+            <p className="font-data text-[11px] font-semibold uppercase tracking-widest text-moss mt-0.5">
+              {sorted.length} found{userLocation ? ' · sorted by distance' : ''}
+            </p>
+          )}
           <input
             type="search"
-            placeholder="Search playgrounds..."
+            placeholder="Search playgrounds"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full border border-gray-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+            className="w-full mt-3.5 border border-line rounded-[10px] px-3.5 py-2.5 text-sm bg-white focus:outline-2 focus:outline-park placeholder:text-moss"
           />
         </div>
       </div>
       {sorted.length === 0 ? (
-        <div className="flex flex-col items-center py-16 text-center px-4">
-          <div className="text-5xl mb-3">🔍</div>
-          <p className="font-medium text-gray-700">No playgrounds found</p>
-          <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
+        <div className="mx-4 mt-6 border border-dashed border-line rounded-xl py-14 text-center px-4">
+          <p className="font-semibold text-ink">No playgrounds found</p>
+          <p className="text-sm text-moss mt-1">Try a different search term.</p>
         </div>
       ) : (
-        sorted.map(pg => (
-          <PlaygroundCard
-            key={pg.id}
-            playground={pg}
-            distanceKm={userLocation ? distanceKm(userLocation.lat, userLocation.lng, pg.lat, pg.lng) : undefined}
-          />
-        ))
+        <div className="px-4 pt-3 pb-8 space-y-2.5">
+          {sorted.map(pg => (
+            <PlaygroundCard
+              key={pg.id}
+              playground={pg}
+              distanceKm={userLocation ? distanceKm(userLocation.lat, userLocation.lng, pg.lat, pg.lng) : undefined}
+            />
+          ))}
+        </div>
       )}
     </div>
   )

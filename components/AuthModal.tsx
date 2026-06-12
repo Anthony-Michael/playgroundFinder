@@ -37,9 +37,14 @@ export default function AuthModal({ isOpen, onClose }: Props) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl border border-gray-100" onClick={e => e.stopPropagation()}>
         <div className="text-center mb-6">
-          <div className="text-3xl mb-2">🛝</div>
-          <h2 className="text-xl font-bold text-gray-900">Sign in to rate</h2>
-          <p className="text-gray-500 text-sm mt-1">Create a free account to rate playgrounds</p>
+          <div className="w-12 h-12 bg-park rounded-xl flex items-center justify-center mx-auto mb-3 text-white">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" className="w-6 h-6" aria-hidden="true">
+              <path d="M6 20V6M9 20V6M6 9.5h3M6 13.5h3M6 17.5h3" />
+              <path d="M9 6c5 1 8.2 6 9 14" />
+            </svg>
+          </div>
+          <h2 className="font-display text-xl font-extrabold text-ink tracking-tight">Sign in to rate</h2>
+          <p className="text-moss text-sm mt-1">Create a free account to rate playgrounds</p>
         </div>
 
         {sent ? (
@@ -76,12 +81,12 @@ export default function AuthModal({ isOpen, onClose }: Props) {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full border border-line rounded-[10px] px-4 py-3 mb-3 text-sm focus:outline-2 focus:outline-park placeholder:text-moss"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-green-500 hover:bg-green-600 text-white rounded-xl py-3 font-medium disabled:opacity-50 transition-colors"
+                className="w-full bg-park hover:bg-park-deep text-white rounded-[10px] py-3 font-semibold disabled:opacity-50 transition-colors"
               >
                 {loading ? 'Sending...' : 'Send magic link'}
               </button>
