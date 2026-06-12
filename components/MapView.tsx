@@ -11,7 +11,9 @@ import AmenityIcon from './AmenityIcon'
 const DEFAULT_CENTER = { lat: 43.6532, lng: -79.3832 } // Toronto
 
 export default function MapView() {
-  const [center, setCenter] = useState(DEFAULT_CENTER)
+  // null until geolocation resolves — the map mounts with the right center on the
+  // first render, since defaultCenter is only read once
+  const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null)
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([])
   const [filters, setFilters] = useState<AmenityKey[]>([])
   // playground id → amenities confirmed by ≥50% of raters (same rule as the detail page)
@@ -25,7 +27,7 @@ export default function MapView() {
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       pos => setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {} // Fall back to Toronto if denied
+      () => setCenter(DEFAULT_CENTER) // Fall back to Toronto if denied
     )
   }, [])
 
@@ -76,7 +78,9 @@ export default function MapView() {
     setConfirmedAmenities(confirmed)
   }, [supabase])
 
-  useEffect(() => { loadPlaygrounds(center.lat, center.lng) }, [center, loadPlaygrounds])
+  useEffect(() => {
+    if (center) loadPlaygrounds(center.lat, center.lng)
+  }, [center, loadPlaygrounds])
 
   const visiblePlaygrounds = filters.length === 0
     ? playgrounds
@@ -84,6 +88,17 @@ export default function MapView() {
         const confirmed = confirmedAmenities[pg.id]
         return confirmed !== undefined && filters.every(f => confirmed.has(f))
       })
+
+  // Waiting on geolocation — don't mount the map yet or it locks onto the fallback
+  if (!center) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-56px)]">
+        <p className="font-data text-xs font-semibold uppercase tracking-widest text-moss">
+          Finding playgrounds near you…
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)]">
