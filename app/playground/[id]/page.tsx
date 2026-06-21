@@ -39,6 +39,21 @@ export default async function PlaygroundDetailPage({ params }: Props) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Pre-fill the form if this user already rated this playground.
+  let initialRating: { stars: number; amenities: Amenities; comment: string | null } | null = null
+  if (user) {
+    const { data: own } = await supabase
+      .from('ratings')
+      .select('stars, amenities, comment')
+      .eq('playground_id', id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (own) {
+      const r = own as { stars: number; amenities: Amenities; comment: string | null }
+      initialRating = { stars: r.stars, amenities: r.amenities, comment: r.comment }
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-5">
       <Link
@@ -70,7 +85,7 @@ export default async function PlaygroundDetailPage({ params }: Props) {
 
       <section className="mb-7">
         <h2 className="font-display font-bold text-base text-ink mb-3">Rate this playground</h2>
-        <RatingFormWrapper playgroundId={playground.id} userId={user?.id ?? null} />
+        <RatingFormWrapper playgroundId={playground.id} userId={user?.id ?? null} initialRating={initialRating} />
       </section>
 
       <section>

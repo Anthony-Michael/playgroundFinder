@@ -39,12 +39,18 @@ export type UserProfile = {
   created_at: string
 }
 
+export type SeededTile = {
+  tile: string
+  seeded_at: string
+}
+
 export type Database = {
   public: {
     Tables: {
       playgrounds: { Row: Playground; Insert: Omit<Playground, 'id' | 'created_at' | 'avg_rating' | 'rating_count'>; Update: Partial<Playground> }
       ratings: { Row: Rating; Insert: Omit<Rating, 'id' | 'created_at'>; Update: Partial<Rating> }
       users: { Row: UserProfile; Insert: Omit<UserProfile, 'created_at'>; Update: Partial<UserProfile> }
+      seeded_tiles: { Row: SeededTile; Insert: SeededTile; Update: Partial<SeededTile> }
     }
   }
 }

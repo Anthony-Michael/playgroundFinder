@@ -8,6 +8,8 @@ import { distanceKm } from '@/lib/distance'
 export default function ListPage() {
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([])
   const [search, setSearch] = useState('')
+  // Debounced copy of `search` — the input stays instant, the query waits 300ms
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   // Wait for geolocation (granted or denied) and the first load before showing
   // anything, so the list doesn't flash far-away playgrounds and re-sort
@@ -21,9 +23,17 @@ export default function ListPage() {
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
         setLocationReady(true)
       },
-      () => setLocationReady(true)
+      () => setLocationReady(true),
+      // Don't let the loading state hang forever if the prompt is ignored
+      { timeout: 8000, maximumAge: 60000 }
     )
   }, [])
+
+  // Debounce the search term by 300ms before it drives a query
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(t)
+  }, [search])
 
   useEffect(() => {
     if (!locationReady) return
@@ -31,21 +41,23 @@ export default function ListPage() {
       let query = supabase.from('playgrounds').select('*')
       if (userLocation) {
         // Only fetch playgrounds within ~25km of the user; without a location
-        // (denied), fall back to the global top-rated list
+        // (denied), fall back to the global top-rated list. Longitude degrees
+        // shrink toward the poles, so widen the lng delta by 1/cos(lat).
         const delta = 0.25
+        const lngDelta = delta / Math.cos((userLocation.lat * Math.PI) / 180)
         query = query
           .gte('lat', userLocation.lat - delta).lte('lat', userLocation.lat + delta)
-          .gte('lng', userLocation.lng - delta).lte('lng', userLocation.lng + delta)
+          .gte('lng', userLocation.lng - lngDelta).lte('lng', userLocation.lng + lngDelta)
       } else {
         query = query.order('avg_rating', { ascending: false })
       }
-      if (search.trim()) query = query.ilike('name', `%${search.trim()}%`)
+      if (debouncedSearch.trim()) query = query.ilike('name', `%${debouncedSearch.trim()}%`)
       const { data } = await query.limit(50)
       setPlaygrounds(data ?? [])
       setLoaded(true)
     }
     load()
-  }, [search, supabase, locationReady, userLocation])
+  }, [debouncedSearch, supabase, locationReady, userLocation])
 
   const sorted = userLocation
     ? [...playgrounds].sort((a, b) =>

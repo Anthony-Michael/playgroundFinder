@@ -9,14 +9,16 @@ import AmenityIcon from './AmenityIcon'
 type Props = {
   playgroundId: string
   userId: string
+  initialRating?: { stars: number; amenities: Amenities; comment: string | null } | null
   onSuccess: () => void
   onNeedAuth: () => void
 }
 
-export default function RatingForm({ playgroundId, userId, onSuccess, onNeedAuth }: Props) {
-  const [stars, setStars] = useState(0)
-  const [amenities, setAmenities] = useState<Amenities>(DEFAULT_AMENITIES)
-  const [comment, setComment] = useState('')
+export default function RatingForm({ playgroundId, userId, initialRating, onSuccess, onNeedAuth }: Props) {
+  const isEditing = !!initialRating
+  const [stars, setStars] = useState(initialRating?.stars ?? 0)
+  const [amenities, setAmenities] = useState<Amenities>(initialRating?.amenities ?? DEFAULT_AMENITIES)
+  const [comment, setComment] = useState(initialRating?.comment ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
@@ -47,6 +49,11 @@ export default function RatingForm({ playgroundId, userId, onSuccess, onNeedAuth
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 bg-white border border-line rounded-xl p-4">
+      {isEditing && (
+        <p className="font-data text-[10px] font-semibold uppercase tracking-widest text-moss">
+          You rated this playground before — editing updates your rating.
+        </p>
+      )}
       <div>
         <label className="block text-sm font-semibold text-ink mb-2">Your rating</label>
         <StarPicker value={stars} onChange={setStars} />
@@ -103,7 +110,7 @@ export default function RatingForm({ playgroundId, userId, onSuccess, onNeedAuth
         disabled={loading}
         className="w-full bg-park hover:bg-park-deep text-white rounded-[10px] py-3.5 font-bold disabled:opacity-50 text-base transition-colors"
       >
-        {loading ? 'Submitting…' : 'Submit rating'}
+        {loading ? 'Submitting…' : isEditing ? 'Update rating' : 'Submit rating'}
       </button>
     </form>
   )

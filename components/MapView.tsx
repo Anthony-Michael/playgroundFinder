@@ -27,7 +27,9 @@ export default function MapView() {
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       pos => setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setCenter(DEFAULT_CENTER) // Fall back to Toronto if denied
+      () => setCenter(DEFAULT_CENTER), // Fall back to Toronto if denied
+      // Don't let the loading state hang forever if the prompt is ignored
+      { timeout: 8000, maximumAge: 60000 }
     )
   }, [])
 
@@ -39,13 +41,15 @@ export default function MapView() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ lat, lng }),
     })
-    // Load from Supabase within ~10km bounding box
+    // Load from Supabase within ~10km bounding box. Longitude degrees shrink
+    // toward the poles, so widen the lng delta by 1/cos(lat).
     const delta = 0.09 // ~10km
+    const lngDelta = delta / Math.cos((lat * Math.PI) / 180)
     const { data } = await supabase
       .from('playgrounds')
       .select('*')
       .gte('lat', lat - delta).lte('lat', lat + delta)
-      .gte('lng', lng - delta).lte('lng', lng + delta)
+      .gte('lng', lng - lngDelta).lte('lng', lng + lngDelta)
     const pgs = (data ?? []) as Playground[]
     setPlaygrounds(pgs)
 
@@ -123,9 +127,21 @@ export default function MapView() {
               onClick={() => router.push(`/playground/${pg.id}`)}
               title={pg.name}
             >
-              <div className="w-8 h-8 rounded-[10px] bg-park border-2 border-white shadow-md flex items-center justify-center text-white">
-                <AmenityIcon name="playground" className="w-4 h-4" />
-              </div>
+              {pg.rating_count > 0 ? (
+                // Rated: green pill showing the average rating
+                <div className="flex items-center gap-1 h-8 px-2 rounded-full bg-park border-2 border-white shadow-md">
+                  <AmenityIcon name="playground" className="w-4 h-4 text-white" />
+                  <span className="text-slide text-xs leading-none">★</span>
+                  <span className="text-white font-data text-xs font-bold leading-none">
+                    {Number(pg.avg_rating).toFixed(1)}
+                  </span>
+                </div>
+              ) : (
+                // Unrated: outline pin reads as "unknown/unconfirmed"
+                <div className="w-8 h-8 rounded-[10px] bg-white border-2 border-park shadow-md flex items-center justify-center text-park">
+                  <AmenityIcon name="playground" className="w-4 h-4" />
+                </div>
+              )}
             </AdvancedMarker>
           ))}
         </Map>
